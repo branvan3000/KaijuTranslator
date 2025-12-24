@@ -23,6 +23,7 @@ class Translator
 
         switch (strtolower($this->provider)) {
             case 'openai':
+            case 'gpt4':
                 return $this->callOpenAI($html, $sourceLang, $targetLang);
             case 'gemini':
                 return $this->callGemini($html, $sourceLang, $targetLang);

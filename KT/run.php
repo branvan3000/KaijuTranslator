@@ -8,7 +8,7 @@ use KaijuTranslator\Core\Translator;
 use KaijuTranslator\Core\Cache;
 use KaijuTranslator\Loopback\Capture;
 use KaijuTranslator\Processing\HtmlInjector;
-use KaijuTranslator\Core\Logger;
+
 
 // 1. Initialize Components
 $config = kaiju_config();

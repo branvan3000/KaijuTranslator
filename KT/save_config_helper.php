@@ -5,6 +5,8 @@ function save_kaiju_config($baseLang, $targetLangs, $provider, $model, $apiKey)
     $configFile = __DIR__ . '/kaiju-config.php';
 
     $configContent = "<?php\n\nreturn [\n";
+    $configContent .= "    // Base URL of your site (e.g. https://pablocirre.es). Required for CLI sitemap generation.\n";
+    $configContent .= "    // 'base_url' => 'https://yoursite.com',\n\n";
     $configContent .= "    // --- Language Settings ---\n";
     $configContent .= "    'base_lang' => '$baseLang',\n";
     $configContent .= "    'languages' => " . var_export($targetLangs, true) . ",\n\n";
@@ -14,8 +16,7 @@ function save_kaiju_config($baseLang, $targetLangs, $provider, $model, $apiKey)
     $configContent .= "    'model' => '$model',\n";
     $configContent .= "    'api_key' => '$apiKey',\n\n";
 
-    $configContent .= "    // --- Advanced Settings (Defaults) ---\n";
-    $configContent .= "    'mode' => 'on_demand', // 'on_demand' or 'prebuild'\n";
+    $configContent .= "    $configContent .= "    // --- Advanced Settings (Defaults) ---\n";
     $configContent .= "    'uninstall_password' => 'kaiju123', // Change this!\n";
     $configContent .= "    'cache_path' => __DIR__ . '/cache',\n";
     $configContent .= "    'sitemaps_path' => __DIR__ . '/../sitemaps/kaiju',\n";

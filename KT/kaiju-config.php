@@ -15,7 +15,6 @@ return [
   'api_key' => '',
 
   // --- Advanced Settings (Defaults) ---
-  'mode' => 'on_demand', // 'on_demand' or 'prebuild'
   'uninstall_password' => 'kaiju123',
   'cache_path' => __DIR__ . '/cache',
   'sitemaps_path' => __DIR__ . '/../sitemaps/kaiju',
