@@ -13,7 +13,7 @@ if (php_sapi_name() !== 'cli') {
         $apiKey = $_POST['api_key'] ?? '';
 
         // Save Config
-        include __DIR__ . '/save_config_helper.php'; // Helper logic to avoid duplication
+        include __DIR__ . '/KT/save_config_helper.php'; 
         save_kaiju_config($baseLang, $targetLangs, $provider, $model, $apiKey);
 
         header("Location: dashboard.php");
