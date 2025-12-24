@@ -6,7 +6,119 @@ $baseLang = $config['base_lang'] ?? 'es';
 $langs = $config['languages'] ?? [];
 $cachePath = $config['cache_path'] ?? __DIR__ . '/cache';
 
-// Simple action handler
+// 1. Simple Authentication
+session_start();
+$pass = $config['uninstall_password'] ?? 'kaiju123';
+
+if (isset($_GET['logout'])) {
+    unset($_SESSION['kt_auth']);
+    header("Location: dashboard.php");
+    exit;
+}
+
+if (!isset($_SESSION['kt_auth']) || $_SESSION['kt_auth'] !== true) {
+    if (isset($_POST['password']) && $_POST['password'] === $pass) {
+        $_SESSION['kt_auth'] = true;
+    } else {
+        ?>
+        <!DOCTYPE html>
+        <html lang="en">
+
+        <head>
+            <meta charset="UTF-8">
+            <title>🦖 KT Login</title>
+            <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+            <style>
+                body {
+                    background: #0f172a;
+                    color: #f8fafc;
+                    font-family: 'Outfit', sans-serif;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    min-height: 100vh;
+                    margin: 0;
+                }
+
+                .login-card {
+                    background: rgba(30, 41, 59, 0.7);
+                    backdrop-filter: blur(12px);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    padding: 40px;
+                    border-radius: 24px;
+                    text-align: center;
+                    width: 300px;
+                }
+
+                input {
+                    background: rgba(0, 0, 0, 0.3);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    color: white;
+                    padding: 12px;
+                    border-radius: 12px;
+                    width: 100%;
+                    box-sizing: border-box;
+                    margin-bottom: 20px;
+                }
+
+                button {
+                    background: #38bdf8;
+                    color: #0f172a;
+                    border: none;
+                    padding: 12px;
+                    border-radius: 12px;
+                    width: 100%;
+                    font-weight: 600;
+                    cursor: pointer;
+                }
+            </style>
+        </head>
+
+        <body>
+            <div class="login-card">
+                <h1>🦖 KT</h1>
+                <p style="color: #94a3b8; margin-bottom: 20px;">Secure Dashboard Access</p>
+                <form method="POST">
+                    <input type="password" name="password" placeholder="Password" required autofocus>
+                    <button type="submit">Unlock</button>
+                </form>
+            </div>
+        </body>
+
+        </html>
+        <?php
+        exit;
+    }
+}
+
+// 3. Config Validation
+function kaiju_validate_config()
+{
+    $config = kaiju_config();
+    $errors = [];
+
+    // Language Check
+    if (!isset($config['base_lang'])) {
+        $errors[] = "Missing 'base_lang' in configuration.";
+    } elseif (!in_array($config['base_lang'], $config['languages'] ?? [])) {
+        $errors[] = "The 'base_lang' ({$config['base_lang']}) must be present in the 'languages' array.";
+    }
+
+    // Provider Check
+    $allowedProviders = ['openai', 'deepseek', 'gemini', 'gpt4'];
+    if (isset($config['translation_provider']) && !in_array(strtolower($config['translation_provider']), $allowedProviders)) {
+        $errors[] = "Invalid 'translation_provider'. Supported: " . implode(', ', $allowedProviders);
+    }
+
+    // API Key Check
+    if (empty($config['api_key'])) {
+        // Not a hard error, but a warning
+    }
+
+    return $errors;
+}
+
+// 2. Action Handlers
 $message = '';
 if (isset($_POST['action'])) {
     if ($_POST['action'] === 'build') {
