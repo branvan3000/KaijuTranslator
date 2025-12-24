@@ -1,64 +1,74 @@
 # 🦖 KT (KaijuTranslator)
 
-**The 100% Plug-and-Play PHP Translator** - *Because life is too short for .htaccess.*
+[![PHP Version](https://img.shields.io/badge/php-%3E%3D8.0-blue.svg)](https://php.net)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![SEO Friendly](https://img.shields.io/badge/SEO-Optimized-orange.svg)](#)
 
-KT converts your existing PHP website to multilingual ( `/en/`, `/fr/` ) by creating physical subfolders and translating content with AI. It's designed to be completely isolated: **if you delete the `KT/` folder, your site returns to its original state.**
+**The simplest, "Dummy-Proof" Translation Engine for PHP Websites.** 🌍✨
 
-## ✨ Features
+KT is an isolated, plug-and-play engine that translates your entire PHP website into multiple languages in seconds using AI (OpenAI, DeepSeek, or Gemini). No complex routing, no database, no headache.
 
-- **Total Isolation**: Everything KT needs is inside the `KT/` folder.
-- **Physical Subfolders**: Creates real, crawlable directories.
-- **SEO Ready**: Auto-generates `hreflang` and `sitemap.xml`.
-- **"Dummy Proof"**: Interactive setup and uninstaller.
+---
 
-## 🚀 Installation
+## 🚀 Why KT?
 
-### 1. Drop the Folder
+- **Zero Config Headache**: Drop it into your root, run the setup, and you're global.
+- **Visual Dashboard**: A premium management console included. No terminal required after setup.
+- **AI-Agnostic**: Use OpenAI (GPT-4o), DeepSeek, or Gemini. You choose your brain.
+- **SEO Master**: Automatically generates `hreflang` tags, canonicals, and XML Sitemaps.
+- **Stealth Mode**: 100% isolated. Delete the `KT` folder and your site is exactly as it was.
 
-Copy the `KT/` folder to your website's root directory.
+---
 
-### 2. Run Setup
+## 🛠️ Quick Start (3 Steps)
 
-Open your terminal in the `KT` folder and run:
+### 1. Upload
+
+Drop the `KT/` folder, `setup.php`, and `uninstall.php` into your website's root directory.
+
+### 2. Configure (Visual or CLI)
+
+Open `yoursite.com/setup.php` in your browser or run:
 
 ```bash
-php KT/setup.php
+php setup.php
 ```
 
-Follow the wizard to set your API Key. It will create `KT/kaiju-config.php`.
+Follow the wizard to set your languages and API Key.
 
-### 3. Build
+### 3. Build & Thrive
 
-Generate your language folders and stubs:
+Go to your **Premium Dashboard** at `yoursite.com/KT/dashboard.php` and click **"Build Stubs"**. KT will discover all your pages and create the language mirrors automatically.
 
-```bash
-php KT/cli/build.php
-```
+---
 
-### 4. Direct Injection
+## 💎 Premium Features
 
-Include the widget in your `header.php` (or global template):
+### 🎨 Visual Dashboard
 
-```php
-<?php include __DIR__ . '/KT/widget.php'; ?>
-```
+KT comes with a stunning **Glassmorphism Dashboard** to:
 
-## 🗑 Uninstallation
+- Monitor translation stats.
+- Clear cache with one click.
+- Trigger builds without touching a single line of code.
 
-Need to remove it? Just visit:
-`yoursite.com/KT/uninstall.php?pass=your_password`
-(Default password: `kaiju123`)
+### 🛡️ Smart Fallback
 
-This will delete all `/en/`, `/fr/` folders and sitemaps. Finally, just delete the `KT/` folder.
+If your API key expires or is missing, KT will **never break your site**. It will gracefully serve the original content while keeping all SEO tags intact.
 
-## 📂 Structure
+### 🦖 Directory Structure
 
-```text
-/
-├── KT/                   # Everything is here!
-│   ├── docs/             # Documentation
-│   ├── tests/            # Tests
-│   ├── kaiju-config.php  # Your config
-│   └── uninstall.php     # Safety first
-└── index.php             # Your site (untouched)
-```
+KT loves cleanliness. It strictly ignores its own files to keep your language folders (`/en/`, `/fr/`, etc.) pristine.
+
+---
+
+## 🤝 Contributing
+
+KT is built for the community. If you have an idea to make it even more "Dummy-Proof", feel free to open a PR!
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+**Build the global web, one PHP file at a time.** 🦖🌍
