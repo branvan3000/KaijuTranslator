@@ -38,20 +38,16 @@ if (!isset($_SESSION['kt_auth']) || $_SESSION['kt_auth'] !== true) {
                     color: #f8fafc;
                     font-family: 'Outfit', sans-serif;
                     display: flex;
-                    just // 6. Inject SEO/Switchers
-                    $translationsMap =[];
+                    justify-content: center;
+                    align-items: center;
+                    min-height: 100vh;
+                    margin: 0;
+                }
 
-                    foreach (kaiju_config('languages') as $l) {
-                        if ($l ===kaiju_config('base_lang')) {
-                            $translationsMap[$l]=$router->getBaseUrl($sourcePath);
-                        }
-
-                        else {
-                            $translationsMap[$l]=$router->getBaseUrl('/' . $l . $sourcePath);
-                        }
-                    }
-
-                    $finalHtml =$injector->injectSeo($translatedHtml, $lang, $translationsMap, $sourcePath, $config);
+                .login-card {
+                    background: rgba(30, 41, 59, 0.7);
+                    backdrop-filter: blur(12px);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
                     padding: 40px;
                     border-radius: 24px;
                     text-align: center;
