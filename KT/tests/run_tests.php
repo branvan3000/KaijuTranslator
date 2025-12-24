@@ -9,7 +9,7 @@ $fails = 0;
 function run_test($name, $callback)
 {
     global $passes, $fails;
-    echo "Testing: $name ... ";
+    printf("  %-45s ", $name);
     try {
         if ($callback()) {
             echo "✅ PASS\n";
@@ -43,18 +43,20 @@ require_once __DIR__ . '/../bootstrap.php';
 
 // --- Run Unit Tests ---
 echo "\n[Unit Tests]\n";
-$unitTests = glob(__DIR__ . '/Unit/*.php');
+$unitTests = glob(__DIR__ . '/Unit/*.php') ?: [];
 foreach ($unitTests as $testFile) {
     require $testFile;
 }
 
 // --- Run Integration Tests ---
 echo "\n[Integration Tests]\n";
-$integrationTests = glob(__DIR__ . '/Integration/*.php');
+$integrationTests = glob(__DIR__ . '/Integration/*.php') ?: [];
 foreach ($integrationTests as $testFile) {
     require $testFile;
 }
 
-echo "\nSummary: $passes Passed, $fails Failed.\n";
+echo "\n" . str_repeat("=", 40) . "\n";
+echo "Summary: $passes Passed, $fails Failed.\n";
+echo str_repeat("=", 40) . "\n";
 if ($fails > 0)
     exit(1);

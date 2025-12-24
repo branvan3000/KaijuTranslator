@@ -20,3 +20,45 @@ run_test('HtmlInjector::injectSeo (Hreflang)', function () {
 
     return true;
 });
+
+run_test('HtmlInjector::injectSeo (Canonical Only)', function () {
+    $injector = new HtmlInjector();
+
+    $html = '<html><head></head><body></body></html>';
+    $lang = 'es';
+    $map = ['es' => 'http://site.com/es/'];
+    $config = [
+        'seo' => [
+            'hreflang_enabled' => false,
+            'canonical_strategy' => 'self'
+        ]
+    ];
+
+    $result = $injector->injectSeo($html, $lang, $map, '/', $config);
+
+    assert_true(strpos($result, 'rel="canonical"') !== false, "Canonical tag missing when hreflang is disabled");
+    assert_true(strpos($result, 'hreflang') === false, "Hreflang tags present when disabled");
+
+    return true;
+});
+
+run_test('HtmlInjector::injectSeo (No SEO Tags)', function () {
+    $injector = new HtmlInjector();
+
+    $html = '<html><head></head><body></body></html>';
+    $lang = 'es';
+    $map = ['es' => 'http://site.com/es/'];
+    $config = [
+        'seo' => [
+            'hreflang_enabled' => false,
+            'canonical_strategy' => 'none'
+        ]
+    ];
+
+    $result = $injector->injectSeo($html, $lang, $map, '/', $config);
+
+    assert_true(strpos($result, 'rel="canonical"') === false, "Canonical tag present when strategy is none");
+    assert_true(strpos($result, 'hreflang') === false, "Hreflang tags present when disabled");
+
+    return true;
+});

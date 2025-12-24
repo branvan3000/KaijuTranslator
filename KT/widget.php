@@ -28,11 +28,7 @@ echo '<div class="kaiju-widget" style="position: fixed; bottom: 25px; right: 25p
         style="background: rgba(15, 23, 42, 0.8); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 12px 18px; border-radius: 14px; backdrop-filter: blur(12px); font-family: sans-serif; font-size: 14px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); outline: none; cursor: pointer; transition: all 0.3s; border-left: 4px solid #38bdf8;">';
 
         foreach ($langs as $lang) {
-        if ($lang === $baseLang) {
-        $url = $sourcePath;
-        } else {
-        $url = '/' . $lang . $sourcePath;
-        }
+        $url = $router->getLocalizedUrl($lang, $sourcePath);
 
         $selected = ($lang === $currentLang) ? 'selected' : '';
         $langName = isset($allLangs[$lang]) ? $allLangs[$lang] : strtoupper($lang);

@@ -1,9 +1,9 @@
 # KaijuTranslator: The Engineering-First PHP Translation Engine
 
 [![PHP Version](https://img.shields.io/badge/php-%3E%3D8.0-blue.svg)](https://php.net)
-[![AI Powered](https://img.shields.io/badge/AI-Powered-red.svg)](#)
+[![AI Powered](https://img.shields.io/badge/AI-Powered-red.svg)](#multi-ai-strategy)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![SEO Ready](https://img.shields.io/badge/SEO-Optimized-orange.svg)](#)
+[![SEO Ready](https://img.shields.io/badge/SEO-Optimized-orange.svg)](#engineering-for-seo)
 
 **KaijuTranslator (KT)** is an automated localization engine for PHP that generates **static SEO mirrors** using Large Language Models (**OpenAI, DeepSeek, Gemini**).
 
@@ -84,6 +84,23 @@ KT supports the world's most powerful LLMs out-of-the-box. Switch providers in s
 - **Isolation**: 100% self-contained. Deleting `KT/` and language folders reverts your site to its original state instantly.
 - **Cache Layer**: File-based caching ensures that after the first AI translation, pages load in **milliseconds**.
 - **Privacy**: No tracking. Your API keys are stored locally in `KT/kaiju-config.php`.
+
+---
+
+## Testing & Quality Assurance
+
+KT includes a custom test suite to ensure logic integrity.
+
+To run all tests:
+
+```bash
+php KT/tests/run_tests.php
+```
+
+The suite covers:
+
+- **Unit Tests**: Logic for `HtmlInjector`, `Router`, and `CliHelper`.
+- **Integration Tests**: End-to-end flow from stub request to AI translation.
 
 ---
 

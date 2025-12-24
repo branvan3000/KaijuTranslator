@@ -33,25 +33,66 @@ class Router
 
     public function resolveSourceUrl($lang)
     {
-        // Converts current translated request back to source URL
-        // E.g. /en/about.php -> /about.php
-        // E.g. /sub/folder/en/about.php -> /sub/folder/about.php
-
         $uri = $_SERVER['REQUEST_URI'] ?? '/';
         $uriPath = parse_url($uri, PHP_URL_PATH);
 
-        // More robust: search for "/$lang/" or matching the end
+        // Handle both "/en/" and "/en" (end of string)
         $prefix = '/' . $lang . '/';
         $pos = strpos($uriPath, $prefix);
 
         if ($pos !== false) {
-            // Reconstruct: part before prefix + part after prefix
             $before = substr($uriPath, 0, $pos);
-            $after = substr($uriPath, $pos + strlen($prefix) - 1); // Keep the leading slash
+            $after = substr($uriPath, $pos + strlen($prefix) - 1);
             return ($before ?: '') . ($after ?: '/');
         }
 
-        return $uriPath; // Fallback
+        // Check for trailing /en
+        $suffix = '/' . $lang;
+        if (substr($uriPath, -strlen($suffix)) === $suffix) {
+            $before = substr($uriPath, 0, -strlen($suffix));
+            return ($before ?: '') . '/';
+        }
+
+        return $uriPath;
+    }
+
+    public function getLocalizedUrl($lang, $sourcePath)
+    {
+        $baseLang = $this->config['base_lang'] ?? 'es';
+        if ($lang === $baseLang) {
+            return $sourcePath;
+        }
+
+        // We need to inject $lang into $sourcePath.
+        // If $sourcePath is /about.php and the site is at root, we want /en/about.php
+        // If site is at /sub/ and $sourcePath is /sub/about.php, we want /sub/en/about.php
+
+        // Strategy: find where the "base" ends. 
+        // We can use the current request as a hint if we are in a localized stub.
+        $currentUri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+        $currentLang = defined('KT_LANG') ? KT_LANG : $baseLang;
+
+        if ($currentLang !== $baseLang) {
+            // We know where the language prefix is in the current URI
+            $prefix = '/' . $currentLang;
+            $pos = strpos($currentUri, $prefix);
+            if ($pos !== false) {
+                $basePath = substr($currentUri, 0, $pos);
+                // The part of $sourcePath after $basePath
+                $relPath = substr($sourcePath, strlen($basePath));
+                return $basePath . '/' . $lang . $relPath;
+            }
+        }
+
+        // Fallback or if we are in base language:
+        // Try to guess if $sourcePath starts with a common directory structure or just /
+        // For simplicity, if it's just / we return /$lang/
+        if ($sourcePath === '/') {
+            return '/' . $lang . '/';
+        }
+
+        // Otherwise, just prefix (standard behavior for root installs)
+        return '/' . $lang . $sourcePath;
     }
 
     public function getBaseUrl(string $path = '')

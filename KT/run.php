@@ -52,11 +52,7 @@ $translatedHtml = $translator->translateHtml($originalHtml, kaiju_config('base_l
 // 6. Inject SEO/Switchers
 $translationsMap = [];
 foreach (kaiju_config('languages') as $l) {
-    if ($l === kaiju_config('base_lang')) {
-        $translationsMap[$l] = $router->getBaseUrl($sourcePath);
-    } else {
-        $translationsMap[$l] = $router->getBaseUrl('/' . $l . $sourcePath);
-    }
+    $translationsMap[$l] = $router->getBaseUrl($router->getLocalizedUrl($l, $sourcePath));
 }
 
 $finalHtml = $injector->injectSeo($translatedHtml, $lang, $translationsMap, $sourcePath, $config);
