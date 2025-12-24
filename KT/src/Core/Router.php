@@ -4,31 +4,30 @@ namespace KaijuTranslator\Core;
 
 class Router
 {
-    protected $config;
-    protected $currentLang;
-    protected $sourcePath;
+    protected $basePath = '';
 
     public function __construct(array $config)
     {
         $this->config = $config;
-        $this->parseRequest();
+        $this->detectBasePath();
     }
 
-    protected function parseRequest()
+    protected function detectBasePath()
     {
-        // Simple logic: Assume script is running inside a subfolder stub, 
-        // OR we are parsing REQUEST_URI if using rewrites (which we are not, per spec, but good to be robust).
+        // Calculate the project root relative to the domain root
+        // __DIR__ is .../KT/src/Core/
+        $projectRoot = realpath(__DIR__ . '/../../../');
+        $docRoot = realpath($_SERVER['DOCUMENT_ROOT'] ?? '');
 
-        // However, per spec "Idiomas por subcarpetas físicas", the stubs are physically at /en/index.php etc.
-        // So the stub itself knows which language it is serving (it's hardcoded in the stub).
+        if ($docRoot && strpos($projectRoot, $docRoot) === 0) {
+            $base = substr($projectRoot, strlen($docRoot));
+            $this->basePath = rtrim(str_replace('\\', '/', $base), '/');
+        }
+    }
 
-        // But for "on_demand" or dynamic testing, we might need to know the requested URI relative to the root.
-
-        $uri = $_SERVER['REQUEST_URI'] ?? '/';
-        $uri = parse_url($uri, PHP_URL_PATH);
-
-        // Detect language from path prefix if needed, or rely on manual setting from the stub.
-        // For now, we'll assume the caller (the stub) sets the language explicitly.
+    public function getBasePath()
+    {
+        return $this->basePath;
     }
 
     public function resolveSourceUrl($lang)
@@ -53,46 +52,25 @@ class Router
             return ($before ?: '') . '/';
         }
 
-        return $uriPath;
+        return $pathWithoutBase;
     }
 
     public function getLocalizedUrl($lang, $sourcePath)
     {
         $baseLang = $this->config['base_lang'] ?? 'es';
+
+        // Ensure sourcePath is relative to basePath if it's already absolute from domain root
+        $relPath = $sourcePath;
+        if ($this->basePath && strpos($sourcePath, $this->basePath) === 0) {
+            $relPath = substr($sourcePath, strlen($this->basePath));
+        }
+        $relPath = '/' . ltrim($relPath, '/');
+
         if ($lang === $baseLang) {
-            return $sourcePath;
+            return $this->basePath . $relPath;
         }
 
-        // We need to inject $lang into $sourcePath.
-        // If $sourcePath is /about.php and the site is at root, we want /en/about.php
-        // If site is at /sub/ and $sourcePath is /sub/about.php, we want /sub/en/about.php
-
-        // Strategy: find where the "base" ends. 
-        // We can use the current request as a hint if we are in a localized stub.
-        $currentUri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
-        $currentLang = defined('KT_LANG') ? KT_LANG : $baseLang;
-
-        if ($currentLang !== $baseLang) {
-            // We know where the language prefix is in the current URI
-            $prefix = '/' . $currentLang;
-            $pos = strpos($currentUri, $prefix);
-            if ($pos !== false) {
-                $basePath = substr($currentUri, 0, $pos);
-                // The part of $sourcePath after $basePath
-                $relPath = substr($sourcePath, strlen($basePath));
-                return $basePath . '/' . $lang . $relPath;
-            }
-        }
-
-        // Fallback or if we are in base language:
-        // Try to guess if $sourcePath starts with a common directory structure or just /
-        // For simplicity, if it's just / we return /$lang/
-        if ($sourcePath === '/') {
-            return '/' . $lang . '/';
-        }
-
-        // Otherwise, just prefix (standard behavior for root installs)
-        return '/' . $lang . $sourcePath;
+        return $this->basePath . '/' . $lang . $relPath;
     }
 
     public function getBaseUrl(string $path = '')
