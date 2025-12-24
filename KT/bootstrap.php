@@ -91,7 +91,7 @@ function kaiju_validate_config()
     if (empty($provider)) {
         $errors[] = "Translation provider not set.";
     } elseif (!in_array($provider, $allowedProviders)) {
-        $errors[] = "Invalid provider '{$provider}'. Use: openai, deepseek, or gemini.";
+        $errors[] = "Invalid provider '{$provider}'. Use: openai, deepseek, gemini, or gpt4.";
     }
 
     // 3. API Key Check

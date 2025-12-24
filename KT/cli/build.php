@@ -43,7 +43,9 @@ if ($config['seo']['hreflang_enabled']) {
     echo "Generating sitemaps...\n";
     $baseUrl = get_cli_base_url();
     if (!$baseUrl) {
-        echo "WARNING: Could not determine base_url for sitemaps. Please define 'base_url' in kaiju-config.php. Skipping sitemaps.\n";
+        echo "CRITICAL: 'base_url' is not defined in config and could not be guessed.\n";
+        echo "Please define 'base_url' => 'https://yoursite.com' in kaiju-config.php for sitemap generation.\n";
+        echo "Skipping sitemaps...\n";
     } else {
         $sitemapGen = new SitemapGen($config['sitemaps_path'], $baseUrl);
 
