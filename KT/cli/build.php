@@ -42,23 +42,27 @@ echo "Created $count stubs.\n";
 if ($config['seo']['hreflang_enabled']) {
     echo "Generating sitemaps...\n";
     $baseUrl = get_cli_base_url();
-    $sitemapGen = new SitemapGen($config['sitemaps_path'], $baseUrl);
+    if (!$baseUrl) {
+        echo "WARNING: Could not determine base_url for sitemaps. Please define 'base_url' in kaiju-config.php. Skipping sitemaps.\n";
+    } else {
+        $sitemapGen = new SitemapGen($config['sitemaps_path'], $baseUrl);
 
-    $generatedSitemaps = [];
+        $generatedSitemaps = [];
 
-    // Base lang sitemap
-    echo "  - $baseLang\n";
-    $generatedSitemaps[] = $sitemapGen->generate($baseLang, $files);
+        // Base lang sitemap
+        echo "  - $baseLang\n";
+        $generatedSitemaps[] = $sitemapGen->generate($baseLang, $files);
 
-    // Target langs sitemaps
-    foreach ($targetLangs as $lang) {
-        echo "  - $lang\n";
-        $generatedSitemaps[] = $sitemapGen->generate($lang, $files);
+        // Target langs sitemaps
+        foreach ($targetLangs as $lang) {
+            echo "  - $lang\n";
+            $generatedSitemaps[] = $sitemapGen->generate($lang, $files);
+        }
+
+        // Index
+        $sitemapGen->generateIndex($generatedSitemaps);
+        echo "Sitemap Index generated at $baseUrl\n";
     }
-
-    // Index
-    $sitemapGen->generateIndex($generatedSitemaps);
-    echo "Sitemap Index generated.\n";
 }
 
 echo "Done.\n";
