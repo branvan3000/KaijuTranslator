@@ -1,5 +1,7 @@
 <?php
 
+require __DIR__ . '/../run.php';
+
 namespace KaijuTranslator\Core;
 
 class Router
@@ -35,16 +37,20 @@ class Router
     {
         // Converts current translated request back to source URL
         // E.g. /en/about.php -> /about.php
+        // E.g. /sub/folder/en/about.php -> /sub/folder/about.php
 
         $uri = $_SERVER['REQUEST_URI'] ?? '/';
         $uriPath = parse_url($uri, PHP_URL_PATH);
 
-        // Remove lang prefix
-        // If URI is /en/about.php and lang is en
-        $prefix = '/' . $lang;
-        if (strpos($uriPath, $prefix) === 0) {
-            $source = substr($uriPath, strlen($prefix));
-            return $source ?: '/';
+        // More robust: search for "/$lang/" or matching the end
+        $prefix = '/' . $lang . '/';
+        $pos = strpos($uriPath, $prefix);
+
+        if ($pos !== false) {
+            // Reconstruct: part before prefix + part after prefix
+            $before = substr($uriPath, 0, $pos);
+            $after = substr($uriPath, $pos + strlen($prefix) - 1); // Keep the leading slash
+            return ($before ?: '') . ($after ?: '/');
         }
 
         return $uriPath; // Fallback

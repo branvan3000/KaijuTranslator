@@ -14,7 +14,7 @@ define('KT_LANG', 'en');
 // Note: We need to make sure the relative require in run.php works or we adjust here.
 // run.php uses __DIR__ . '/bootstrap.php', so it's fine.
 // But run.php expects to be included by a stub in /en/, so it might rely on that for some logic?
-// The stub does: require __DIR__ . '/../kaiju-translator/run.php';
+// The stub does: require __DIR__ . '/../KT/run.php';
 
 echo "--- Simulating Request to /en/test_page.php ---\n";
 
