@@ -7,19 +7,40 @@
 
 **The AI-Powered, "Dummy-Proof" Translation Engine for PHP Websites.** 🌍✨
 
-KT is an isolated, plug-and-play engine that transforms your entire PHP website into a multilingual powerhouse in seconds. Leveraging **OpenAI (GPT-4o)**, **DeepSeek**, and **Google Gemini**, KT handles the heavy lifting of translation while you focus on your code.
+KT is the ultimate tool for developers who want to take their PHP projects global without the complexity. Using **OpenAI**, **DeepSeek**, and **Google Gemini**, KT creates a seamless, multilingual experience while handling all the technical SEO heavy lifting.
 
 ![KT Dashboard](assets/dashboard.png)
 
 ---
 
+## 📈 Dominate Global Search (Multi-Country SEO)
+
+KT isn't just a translator; it's an SEO machine. Most tools simple swap text, but KT creates **physical SEO mirrors** that search engines love.
+
+![Global SEO Growth](assets/seo_growth.png)
+
+- **Native Subfolders**: Physical directories ( `/en/`, `/fr/` ) ensure 100% crawlability.
+- **Smart Hreflang**: Automatically tells Google exactly which version to show in each country.
+- **Sitemap Indexing**: Generates multi-language XML sitemaps for instant indexing.
+- **Context-Aware Translation**: AI understands your SEO keywords and keeps them intact.
+
+---
+
+## 🧠 Meet the AI Kaiju
+
+Built for the modern web, KT uses Large Language Models to handle the nuances of language. Whether it's complex technical documentation or creative marketing copy, our "Digital Kaiju" breathes life into your global content.
+
+![AI Kaiju Concept](assets/ai_kaiju.png)
+
+---
+
 ## 🚀 Why KT?
 
-- **🧠 Multi-AI Brain**: Choose between **OpenAI**, **DeepSeek**, or **Gemini**. Get the best translations for every language.
-- **⚡ Zero Config Headache**: Drop it in, run the setup, and go global. No `.htaccess` magic required.
-- **🎨 Premium Visual Dashboard**: Manage your translations from a beautiful, glassmorphism console.
-- **🔍 SEO Master**: Built-in automated `hreflang` tags, canonicals, and XML Sitemaps.
-- **🛡️ Stealth Mode**: 100% isolated. Your original code stays untouched. Delete the `KT/` folder, and it's like we were never there.
+- **🧠 Multi-AI Brain**: Choose your favorite engine: **OpenAI (GPT-4o)**, **DeepSeek**, or **Gemini**.
+- **⚡ Zero-Touch Integration**: Drop the folder in, run the setup, and you're done. No database, no rewrites.
+- **🎨 Premium Visual Dashboard**: A stunning management console to monitor your global growth.
+- **🛡️ Stealth Mode**: 100% isolated architecture. Your original site remains untouched and pristine.
+- **⚡ High Performance**: Fast file-based caching system for instant page loads.
 
 ---
 
@@ -27,41 +48,25 @@ KT is an isolated, plug-and-play engine that transforms your entire PHP website 
 
 ### 1. Upload
 
-Drop the `KT/` folder, `setup.php`, and `uninstall.php` into your website's root.
+Drop the `KT/` folder and the entry scripts into your website's root.
 
-### 2. Configure (AI Ready)
+### 2. Set Up
 
-Open `yoursite.com/setup.php` in your browser. Select your preferred **AI Provider** and enter your API Key.
+Open `yoursite.com/setup.php`. Select your AI provider and start the wizard.
 
-### 3. Build & Thrive
+### 3. Build
 
-Visit the **KT Dashboard** at `yoursite.com/KT/dashboard.php` and click **"Build Stubs"**. KT will automatically discover your pages and create SEO-optimized language mirrors.
-
----
-
-## 💎 Features at a Glance
-
-### 🦾 AI-First Translation
-
-KT doesn't just replace words. It uses LLMs to understand context, ensuring your technical terms and nuances are preserved across all languages.
-
-### 🛡️ Smart Fallback (Safety First)
-
-If your AI API key expires or hits a limit, KT **fails gracefully**. Your site stays online with original content while maintaining all SEO headers. No 404s, no crashes.
-
-### 🧹 Clean Architecture
-
-Your language folders (`/en/`, `/fr/`, etc.) stay 100% clean. KT only generates the minimal entry points needed for search engines to index your translated content.
+Access the **KT Dashboard** at `/KT/dashboard.php` and click **"Build Stubs"**. Your global journey starts now!
 
 ---
 
-## 🤝 Contributing
+## 🤝 Community & Support
 
-KT is mission-critical for the global PHP community. If you have an idea to make it even more "Dummy-Proof", feel free to open a PR!
+KT is a community-first project. Help us build the most accessible translation engine for PHP!
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - Keep it open, keep it global.
 
 ---
-**Build the global web, one AI prompt at a time.** 🦖🌍
+**One PHP file. Three AI brains. Infinite global reach.** 🦖🌍💎
