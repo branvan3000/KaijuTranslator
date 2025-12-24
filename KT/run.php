@@ -63,7 +63,7 @@ if ($config['seo']['hreflang_enabled'] ?? true) {
         }
     }
 
-    $finalHtml = $injector->injectSeo($translatedHtml, $lang, $translationsMap, $sourcePath);
+    $finalHtml = $injector->injectSeo($translatedHtml, $lang, $translationsMap, $sourcePath, $config);
 }
 
 // 7. Save Cache

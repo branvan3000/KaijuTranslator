@@ -20,5 +20,8 @@ return [
   'sitemaps_path' => __DIR__ . '/../sitemaps/kaiju',
   'allowed_paths' => [__DIR__ . '/../'],
   'excluded_paths' => ['KT', 'vendor', '.git'],
-  'seo' => ['hreflang_enabled' => true],
+  'seo' => [
+    'hreflang_enabled' => true,
+    'canonical_strategy' => 'self',
+  ],
 ];

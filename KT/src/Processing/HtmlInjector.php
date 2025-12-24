@@ -5,7 +5,7 @@ namespace KaijuTranslator\Processing;
 class HtmlInjector
 {
 
-    public function injectSeo($html, $lang, $translationsMap, $currentPath)
+    public function injectSeo($html, $lang, $translationsMap, $currentPath, $config = [])
     {
         // translationsMap is array of [lang => url] for hreflang
 
@@ -19,8 +19,11 @@ class HtmlInjector
             $tags .= '<link rel="alternate" hreflang="' . $l . '" href="' . $url . '" />' . "\n";
         }
 
-        // Add canonical link to reference the translated version as the authoritative source
-        $tags .= '<link rel="canonical" href="' . $translationsMap[$lang] . '" />' . "\n";
+        // Add canonical link if strategy is set to 'self'
+        $strategy = $config['seo']['canonical_strategy'] ?? 'self';
+        if ($strategy === 'self') {
+            $tags .= '<link rel="canonical" href="' . $translationsMap[$lang] . '" />' . "\n";
+        }
 
         return substr_replace($html, $tags, $headEnd, 0);
     }
