@@ -101,7 +101,7 @@ function kaiju_validate_config()
 
     // 4. Base URL Check (for sitemaps)
     if (empty($config['base_url'])) {
-        $errors[] = "Missing 'base_url'. SEO sitemaps cannot be generated via CLI/Dashboard without it.";
+        $errors[] = "Config 'base_url' is missing. (Optional: only needed for CLI Sitemap generation).";
     }
 
     return $errors;

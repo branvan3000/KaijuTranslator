@@ -7,7 +7,7 @@ function get_cli_base_url()
 {
     // Guess from directory name for local dev, but allow config override.
     $config = function_exists('kaiju_config') ? kaiju_config() : [];
-    if (isset($config['base_url']))
+    if (!empty($config['base_url']))
         return $config['base_url'];
 
     $folder = basename(realpath(__DIR__ . '/../../'));

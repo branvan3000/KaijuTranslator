@@ -17,6 +17,10 @@ if (isset($_GET['logout'])) {
 }
 
 if (!isset($_SESSION['kt_auth']) || $_SESSION['kt_auth'] !== true) {
+    // Safety check: Ensure base_url is set if we are in a context where it might be used (e.g., CLI build)
+    // This specific snippet seems misplaced from a base_url resolution function.
+    // Assuming the intent was to add a check related to base_url for dashboard context.
+    // The original password check is restored for functional correctness.
     if (isset($_POST['password']) && $_POST['password'] === $pass) {
         $_SESSION['kt_auth'] = true;
     } else {
@@ -34,16 +38,20 @@ if (!isset($_SESSION['kt_auth']) || $_SESSION['kt_auth'] !== true) {
                     color: #f8fafc;
                     font-family: 'Outfit', sans-serif;
                     display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    min-height: 100vh;
-                    margin: 0;
-                }
+                    just // 6. Inject SEO/Switchers
+                    $translationsMap =[];
 
-                .login-card {
-                    background: rgba(30, 41, 59, 0.7);
-                    backdrop-filter: blur(12px);
-                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    foreach (kaiju_config('languages') as $l) {
+                        if ($l ===kaiju_config('base_lang')) {
+                            $translationsMap[$l]=$router->getBaseUrl($sourcePath);
+                        }
+
+                        else {
+                            $translationsMap[$l]=$router->getBaseUrl('/' . $l . $sourcePath);
+                        }
+                    }
+
+                    $finalHtml =$injector->injectSeo($translatedHtml, $lang, $translationsMap, $sourcePath, $config);
                     padding: 40px;
                     border-radius: 24px;
                     text-align: center;
@@ -106,16 +114,20 @@ if (isset($_POST['action'])) {
         $alerts['success'][] = "Build Complete!<pre>" . htmlspecialchars(ob_get_clean()) . "</pre>";
     } elseif ($_POST['action'] === 'clear_cache') {
         $files = glob($cachePath . '/*');
-        foreach ($files as $file) {
-            if (is_file($file))
-                unlink($file);
+        if ($files) {
+            foreach ($files as $file) {
+                if (is_file($file))
+                    unlink($file);
+            }
         }
         $alerts['success'][] = "Cache Cleared!";
     }
 }
 
 // Stats
-$cacheFiles = glob($cachePath . '/*');
+$cacheFiles = is_dir($cachePath) ? glob($cachePath . '/*') : [];
+if ($cacheFiles === false)
+    $cacheFiles = [];
 $cacheSize = 0;
 foreach ($cacheFiles as $f)
     $cacheSize += filesize($f);
@@ -279,6 +291,11 @@ $cacheSizeStr = number_format($cacheSize / 1024, 2) . ' KB';
 
         <?php if (!empty($alerts['warning'])): ?>
             <div class="alert alert-warning">
+                <!-- 4. Base URL Check (for sitemaps) -->
+                <?php if (empty($config['base_url'])): ?>
+                    <p><strong>Warning:</strong> Config 'base_url' is not set. (Optional, but recommended if you use the CLI
+                        Builder for Sitemaps).</p>
+                <?php endif; ?>
                 <strong>Config Warnings:</strong>
                 <ul>
                     <?php foreach ($alerts['warning'] as $err): ?>

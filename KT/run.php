@@ -49,22 +49,17 @@ if (!$originalHtml) {
 // 5. Translate
 $translatedHtml = $translator->translateHtml($originalHtml, kaiju_config('base_lang'), $lang);
 
-$finalHtml = $translatedHtml;
-if ($config['seo']['hreflang_enabled'] ?? true) {
-    // 6. Inject SEO/Switchers
-    // Need to know full map of URLs for this page for hreflang
-    $translationsMap = [];
-    foreach (kaiju_config('languages') as $l) {
-        // Assume structure matches
-        if ($l === kaiju_config('base_lang')) {
-            $translationsMap[$l] = $router->getBaseUrl($sourcePath);
-        } else {
-            $translationsMap[$l] = $router->getBaseUrl('/' . $l . $sourcePath);
-        }
+// 6. Inject SEO/Switchers
+$translationsMap = [];
+foreach (kaiju_config('languages') as $l) {
+    if ($l === kaiju_config('base_lang')) {
+        $translationsMap[$l] = $router->getBaseUrl($sourcePath);
+    } else {
+        $translationsMap[$l] = $router->getBaseUrl('/' . $l . $sourcePath);
     }
-
-    $finalHtml = $injector->injectSeo($translatedHtml, $lang, $translationsMap, $sourcePath, $config);
 }
+
+$finalHtml = $injector->injectSeo($translatedHtml, $lang, $translationsMap, $sourcePath, $config);
 
 // 7. Save Cache
 $cache->set($cacheKey, $finalHtml);

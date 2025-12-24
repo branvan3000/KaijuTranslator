@@ -15,8 +15,10 @@ class HtmlInjector
         }
 
         $tags = '';
-        foreach ($translationsMap as $l => $url) {
-            $tags .= '<link rel="alternate" hreflang="' . $l . '" href="' . $url . '" />' . "\n";
+        if ($config['seo']['hreflang_enabled'] ?? true) {
+            foreach ($translationsMap as $l => $url) {
+                $tags .= '<link rel="alternate" hreflang="' . $l . '" href="' . $url . '" />' . "\n";
+            }
         }
 
         // Add canonical link if strategy is set to 'self'
