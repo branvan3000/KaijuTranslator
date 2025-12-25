@@ -5,61 +5,52 @@
 
 function get_cli_base_url()
 {
-    // Guess from directory name for local dev, but allow config override.
-    $config = function_exists('kaiju_config') ? kaiju_config() : [];
-    if (!empty($config['base_url']))
-        return $config['base_url'];
+    $candidates = [];
+
+    if (function_exists('kaiju_config')) {
+        $config = kaiju_config();
+        if (!empty($config['base_url'])) {
+            $candidates[] = $config['base_url'];
+        }
+    }
+
+    $envBaseUrl = getenv('KAIJU_BASE_URL');
+    if ($envBaseUrl) {
+        $candidates[] = $envBaseUrl;
+    }
+
+    foreach ($candidates as $candidate) {
+        if (is_valid_base_url($candidate)) {
+            return rtrim($candidate, '/');
+        }
+    }
 
     $folder = basename(realpath(__DIR__ . '/../../'));
-    if ($folder === 'html' || $folder === 'var')
-        return null; // Too generic for guessing
-
-    return 'http://localhost/' . $folder;
-}
-
-function normalize_url($url)
-{
-    if (empty($url))
-        return '';
-    // Ensure protocol
-    if (!preg_match('/^https?:\/\//i', $url)) {
-        $url = 'http://' . $url;
+    if ($folder && !in_array(strtolower($folder), ['html', 'var'], true)) {
+        $guess = 'http://localhost/' . $folder;
+        if (is_valid_base_url($guess)) {
+            return rtrim($guess, '/');
+        }
     }
-    // Remove trailing slash
-    return rtrim($url, '/');
+
+    return null;
 }
 
 function is_valid_base_url($url)
 {
-    if (empty($url))
-        return false;
-
-    // Basic formatting
-    if (!filter_var($url, FILTER_VALIDATE_URL))
-        return false;
-
-    // Optional: host check (no simple loose strings)
-    $host = parse_url($url, PHP_URL_HOST);
-    if (!$host || strpos($host, '.') === false && $host !== 'localhost') {
-        // Warning: Hosts like 'myserver' are valid internally but risky for public SEO
+    if (function_exists('kaiju_is_valid_base_url')) {
+        return kaiju_is_valid_base_url($url);
     }
 
-    return true;
+    if (empty($url)) {
+        return false;
+    }
+
+    $url = trim($url);
+    if (!preg_match('/^https?:\/\//i', $url)) {
+        return false;
+    }
+
+    return (bool) filter_var($url, FILTER_VALIDATE_URL);
 }
 
-function check_url_reachability($url)
-{
-    // Simple HEAD request to see if it responds
-    $ch = curl_init($url);
-    curl_setopt($ch, CURLOPT_NOBODY, true);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 3);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    // Trust localhost in CLI
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-
-    curl_exec($ch);
-    $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
-
-    return $code >= 200 && $code < 400;
-}

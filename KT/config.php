@@ -1,6 +1,9 @@
 <?php
 
 return [
+    // Base URL is required for sitemap generation and CLI tooling
+    'base_url' => 'https://example.com',
+
     // 1. Language Configuration
     'base_lang' => 'es',
     'languages' => ['es', 'en', 'fr'],

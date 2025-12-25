@@ -98,23 +98,35 @@ if (!empty($seoConfig['hreflang_enabled'])) {
                 echo "         Sitemap index will assume default '/sitemaps/kaiju' URL structure, which may be incorrect.\n";
             }
 
-            $sitemapGen = new SitemapGen($config['sitemaps_path'], $baseUrl, $sitemapsUrl);
+            $projectRoot = realpath(__DIR__ . '/../../');
+            $sitemapGen = new SitemapGen($config['sitemaps_path'], $baseUrl, $sitemapsUrl, $projectRoot);
+
+            $sitemapWarnings = [];
 
             $generatedSitemaps = [];
 
             // Base lang sitemap
             echo "  - $baseLang\n";
             $generatedSitemaps[] = $sitemapGen->generate($baseLang, $files);
+            $sitemapWarnings = array_merge($sitemapWarnings, $sitemapGen->getWarnings());
 
             // Target langs sitemaps
             foreach ($targetLangs as $lang) {
                 echo "  - $lang\n";
                 $generatedSitemaps[] = $sitemapGen->generate($lang, $files);
+                $sitemapWarnings = array_merge($sitemapWarnings, $sitemapGen->getWarnings());
             }
 
             // Index
             $sitemapGen->generateIndex($generatedSitemaps);
             echo "Sitemap Index generated at $baseUrl\n";
+
+            if (!empty($sitemapWarnings)) {
+                echo "Sitemap warnings:\n";
+                foreach ($sitemapWarnings as $warning) {
+                    echo " - $warning\n";
+                }
+            }
         }
     }
 }

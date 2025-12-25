@@ -30,6 +30,22 @@ spl_autoload_register(function ($class) {
     }
 });
 
+if (!function_exists('kaiju_is_valid_base_url')) {
+    function kaiju_is_valid_base_url(?string $url): bool
+    {
+        if (empty($url)) {
+            return false;
+        }
+
+        $url = trim($url);
+        if (!preg_match('/^https?:\/\//i', $url)) {
+            return false;
+        }
+
+        return (bool) filter_var($url, FILTER_VALIDATE_URL);
+    }
+}
+
 // 2. Load Configuration
 if (!function_exists('kaiju_config')) {
     function kaiju_config($key = null, $default = null)
@@ -52,6 +68,10 @@ if (!function_exists('kaiju_config')) {
             // Apply default cache_path if not explicitly set in config files
             if (!isset($config['cache_path'])) {
                 $config['cache_path'] = __DIR__ . '/cache';
+            }
+
+            if (!empty($config['base_url'])) {
+                $config['base_url'] = rtrim($config['base_url'], '/');
             }
 
             // Support Environment Variables for API Key
@@ -117,10 +137,11 @@ function kaiju_validate_config()
     }
 
     // 4. Base URL Check (for sitemaps)
-    if (empty($config['base_url'])) {
-        if ($config['seo']['hreflang_enabled'] ?? false) {
-            $results['warnings'][] = "Config 'base_url' is missing. Required for Sitemap generation (SEO enabled).";
-        }
+    $baseUrl = $config['base_url'] ?? '';
+    if (empty($baseUrl)) {
+        $results['errors'][] = "Config 'base_url' is missing. Set it in KT/kaiju-config.php or setup.";
+    } elseif (!kaiju_is_valid_base_url($baseUrl)) {
+        $results['errors'][] = "Config 'base_url' is invalid. Use an absolute http(s) URL.";
     }
 
     // 5. Cache Path Check

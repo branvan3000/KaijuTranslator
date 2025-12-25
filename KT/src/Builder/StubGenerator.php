@@ -15,7 +15,7 @@ class StubGenerator
     {
         $created = 0;
         foreach ($languages as $lang) {
-            $langDir = $this->rootDir . '/' . $lang;
+            $langDir = $this->rootDir . '/KT/languages/' . $lang;
             if (!is_dir($langDir)) {
                 mkdir($langDir, 0755, true);
             }
@@ -40,7 +40,7 @@ class StubGenerator
     {
         $deleted = 0;
         foreach ($languages as $lang) {
-            $langDir = $this->rootDir . '/' . $lang;
+            $langDir = $this->rootDir . '/KT/languages/' . $lang;
             if (!is_dir($langDir))
                 continue;
 

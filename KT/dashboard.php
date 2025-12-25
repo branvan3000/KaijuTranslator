@@ -108,6 +108,11 @@ $alerts = [
     'warning' => $validation['warnings']
 ];
 
+$baseUrl = $config['base_url'] ?? '';
+if (empty($baseUrl) || !kaiju_is_valid_base_url($baseUrl)) {
+    $alerts['error'][] = "Base URL is missing or invalid. Update KT/kaiju-config.php via setup before running the builder.";
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     // CSRF Check
     $token = $_POST['csrf_token'] ?? '';
@@ -115,14 +120,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $alerts['error'][] = "CSRF Token Validation Failed. Please refresh and try again.";
     } else {
         if ($_POST['action'] === 'build') {
-            define('KT_WEB_BUILD', true);
-            ob_start();
-            try {
-                include __DIR__ . '/cli/build.php';
-                $alerts['success'][] = "Build Complete!<pre>" . htmlspecialchars(ob_get_clean()) . "</pre>";
-            } catch (\Exception $e) {
-                ob_end_clean();
-                $alerts['error'][] = "Build Failed: " . $e->getMessage();
+            if (!empty($alerts['error'])) {
+                $alerts['error'][] = "Builder aborted due to existing configuration errors.";
+            } else {
+                define('KT_WEB_BUILD', true);
+                ob_start();
+                try {
+                    include __DIR__ . '/cli/build.php';
+                    $alerts['success'][] = "Build Complete!<pre>" . htmlspecialchars(ob_get_clean()) . "</pre>";
+                } catch (\Exception $e) {
+                    ob_end_clean();
+                    $alerts['error'][] = "Build Failed: " . $e->getMessage();
+                }
             }
         } elseif ($_POST['action'] === 'clear_cache') {
             $files = glob($cachePath . '/*');
