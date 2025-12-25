@@ -18,7 +18,13 @@ class Translator
     public function translateHtml($html, $sourceLang, $targetLang)
     {
         if (empty($this->apiKey)) {
-            return "<!-- KT: Mock Mode (No API Key) -->\n" . $html;
+            $mockBanner = '<div style="background:#fbbf24;color:#000;padding:10px;text-align:center;font-weight:bold;position:fixed;top:0;left:0;right:0;z-index:99999;">⚠️ KaijuTranslator Mock Mode (No API Key) - Translations are simulated.</div>';
+
+            // Try to inject after body tag, otherwise prepend
+            if (stripos($html, '<body') !== false) {
+                return preg_replace('/(<body[^>]*>)/i', '$1' . $mockBanner, $html);
+            }
+            return $mockBanner . $html;
         }
 
         switch (strtolower($this->provider)) {

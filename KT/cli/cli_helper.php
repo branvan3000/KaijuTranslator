@@ -17,10 +17,49 @@ function get_cli_base_url()
     return 'http://localhost/' . $folder;
 }
 
+function normalize_url($url)
+{
+    if (empty($url))
+        return '';
+    // Ensure protocol
+    if (!preg_match('/^https?:\/\//i', $url)) {
+        $url = 'http://' . $url;
+    }
+    // Remove trailing slash
+    return rtrim($url, '/');
+}
+
 function is_valid_base_url($url)
 {
     if (empty($url))
         return false;
-    // Basic schema check: must start with http:// or https://
-    return (bool) preg_match('/^https?:\/\//i', $url);
+
+    // Basic formatting
+    if (!filter_var($url, FILTER_VALIDATE_URL))
+        return false;
+
+    // Optional: host check (no simple loose strings)
+    $host = parse_url($url, PHP_URL_HOST);
+    if (!$host || strpos($host, '.') === false && $host !== 'localhost') {
+        // Warning: Hosts like 'myserver' are valid internally but risky for public SEO
+    }
+
+    return true;
+}
+
+function check_url_reachability($url)
+{
+    // Simple HEAD request to see if it responds
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_NOBODY, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 3);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    // Trust localhost in CLI
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+
+    curl_exec($ch);
+    $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    return $code >= 200 && $code < 400;
 }

@@ -23,3 +23,9 @@ sitemaps/
 # IDEs
 .idea/
 .vscode/
+
+# Generated Japanese
+/ja/
+
+# Temp config
+kt_test_config.php

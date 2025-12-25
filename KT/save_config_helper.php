@@ -32,12 +32,9 @@ function save_kaiju_config($baseLang, $targetLangs, $provider, $model, $apiKey)
     $configContent .= "    'uninstall_password' => " . var_export($uninstallPassword, true) . ",\n";
     $configContent .= "    'cache_path' => __DIR__ . '/cache',\n";
     $configContent .= "    'sitemaps_path' => __DIR__ . '/../sitemaps/kaiju',\n";
-    $configContent .= "    'allowed_paths' => [__DIR__ . '/../'],\n";
-    $configContent .= "    'excluded_paths' => ['KT', 'vendor', '.git'],\n";
-    $configContent .= "    'seo' => [\n";
-    $configContent .= "        'hreflang_enabled' => true,\n";
-    $configContent .= "        'canonical_strategy' => 'self',\n";
-    $configContent .= "    ],\n";
+    $configContent .= "    'allowed_paths' => " . var_export($existingConfig['allowed_paths'] ?? [__DIR__ . '/../'], true) . ",\n";
+    $configContent .= "    'excluded_paths' => " . var_export($existingConfig['excluded_paths'] ?? ['KT', 'vendor', '.git'], true) . ",\n";
+    $configContent .= "    'seo' => " . var_export($existingConfig['seo'] ?? ['hreflang_enabled' => true, 'canonical_strategy' => 'self'], true) . ",\n";
     $configContent .= "];\n";
 
     return file_put_contents($configFile, $configContent, LOCK_EX);

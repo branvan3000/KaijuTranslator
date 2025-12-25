@@ -15,7 +15,13 @@ class Router
 
     protected function detectBasePath()
     {
-        // Calculate the project root relative to the domain root
+        // 1. CLI Mode: Trust config or disable path detection
+        if (php_sapi_name() === 'cli') {
+            $this->basePath = '';
+            return;
+        }
+
+        // 2. Web Mode: Attempt to auto-detect
         $projectRoot = realpath(__DIR__ . '/../../../');
         $docRoot = realpath($_SERVER['DOCUMENT_ROOT'] ?? '');
 
@@ -23,7 +29,7 @@ class Router
             $base = substr($projectRoot, strlen($docRoot));
             $this->basePath = rtrim(str_replace('\\', '/', $base), '/');
         } else {
-            // Fallback for CLI or cases where project root is not under doc root
+            // Fallback
             $this->basePath = '';
         }
     }

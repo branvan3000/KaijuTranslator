@@ -26,37 +26,39 @@ class SitemapGen
         $content = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
         $content .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">' . "\n";
 
+        $urlCount = 0;
         foreach ($files as $file) {
-            // $file is relative source path e.g. 'about.php'
-            // If base lang, URL is /about.php
-            // If other lang, URL is /en/about.php
-            // Wait, logic needs to be precise.
-
-            // Assume $files contains SOURCE paths.
-            // Caller handles lang logic, or we do it here.
-            // Let's assume we generate sitemap strictly for this lang.
-
-            if ($lang === kaiju_config('base_lang')) {
-                $url = $this->baseUrl . '/' . ltrim($file, '/');
-            } else {
-                // Correctly handle subdirectories: baseUrl might already have a path
-                // But generally, we want /lang/ after the domain-root relative path if any.
-                // However, since we now have Router::buildLangPath concept, we should be careful.
-                // For sitemaps, usually it's domain.com/subdir/en/file.php
-
-                $parsed = parse_url($this->baseUrl);
-                $path = $parsed['path'] ?? '';
-                $scheme = $parsed['scheme'] . '://';
-                $host = $parsed['host'];
-                $port = isset($parsed['port']) ? ':' . $parsed['port'] : '';
-
-                $baseUrlWithoutPath = $scheme . $host . $port;
-                $url = $baseUrlWithoutPath . rtrim($path, '/') . '/' . $lang . '/' . ltrim($file, '/');
+            $urlCount++;
+            if ($urlCount > 50000) {
+                // Warn about size limit (could split into multiple files in future)
+                error_log("Warning: Sitemap $filename exceeds 50,000 URLs.");
             }
 
+            // Normalize file path for URL
+            $urlPath = ltrim(str_replace('\\', '/', $file), '/');
+
+            // Construct URL
+            if ($lang === kaiju_config('base_lang')) {
+                $url = $this->baseUrl . '/' . $urlPath;
+            } else {
+                $url = $this->baseUrl . '/' . $lang . '/' . $urlPath;
+            }
+
+            // Get Last Modified Date
+            // $file is relative to project root? Wait, caller passes relative paths from Scanner scan()
+            // Scanner scan() returns paths relative to rootDir.
+            // We need full path to get filemtime.
+            // But strict project structure: rootDir is parent of KT?
+            // Let's assume we can find the file using allowed_paths logic or just relative to __DIR__/../../ ??
+            // Actually, Scanner should probably provide full paths or we look it up.
+            // If we can't find file, skip lastmod.
+
+            $fullPath = realpath(__DIR__ . '/../../../' . $file);
+            $lastMod = $fullPath && file_exists($fullPath) ? date('c', filemtime($fullPath)) : date('c');
+
             $content .= "  <url>\n";
-            $content .= "    <loc>$url</loc>\n";
-            // Optional: lastmod, changefreq
+            $content .= "    <loc>" . htmlspecialchars($url) . "</loc>\n";
+            $content .= "    <lastmod>$lastMod</lastmod>\n";
             $content .= "  </url>\n";
         }
 

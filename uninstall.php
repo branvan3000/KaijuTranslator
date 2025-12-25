@@ -9,9 +9,19 @@ $pass = $config['uninstall_password'] ?? 'kaiju123'; // Default password if not 
 echo "--- KT Uninstaller ---\n";
 
 if (php_sapi_name() !== 'cli') {
-    // Basic web-based password check
-    if (!isset($_GET['pass']) || $_GET['pass'] !== $pass) {
-        die("Error: Access Denied. Use ?pass=YOUR_PASSWORD");
+    // Web-based uninstallation requires POST + CSRF + Auth
+    session_start();
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        die("Error: Uninstall must be performed via POST.");
+    }
+
+    if (empty($_SESSION['kt_auth']) || $_SESSION['kt_auth'] !== true) {
+        die("Error: Access Denied.");
+    }
+
+    $token = $_POST['csrf_token'] ?? '';
+    if (empty($token) || $token !== ($_SESSION['kt_csrf_token'] ?? '')) {
+        die("Error: Invalid CSRF Token.");
     }
 } else {
     // CLI check if needed, for simplicity we just run if pass matches or is default

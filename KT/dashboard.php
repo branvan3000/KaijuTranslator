@@ -25,6 +25,7 @@ if (!isset($_SESSION['kt_auth']) || $_SESSION['kt_auth'] !== true) {
     // Assuming the intent was to add a check related to base_url for dashboard context.
     // The original password check is restored for functional correctness.
     if (isset($_POST['password']) && $_POST['password'] === $pass) {
+        session_regenerate_id(true);
         $_SESSION['kt_auth'] = true;
     } else {
         ?>
@@ -350,8 +351,13 @@ $cacheSizeStr = number_format($cacheSize / 1024, 2) . ' KB';
                 <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['kt_csrf_token'] ?? ''; ?>">
                 <button type="submit" name="action" value="build">Build Stubs</button>
                 <button type="submit" name="action" value="clear_cache" class="secondary">Clear Cache</button>
-                <a href="../uninstall.php" style="margin-left:auto;"><button type="button" class="secondary"
-                        style="background:#ef4444; color:white;">Uninstall</button></a>
+            </form>
+
+            <form method="POST" action="../uninstall.php"
+                onsubmit="return confirm('Are you sure you want to uninstall KaijuTranslator? This cannot be undone.');">
+                <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['kt_csrf_token'] ?? ''; ?>">
+                <button type="submit" class="secondary"
+                    style="background:#ef4444; color:white; margin-left: 15px;">Uninstall</button>
             </form>
         </div>
     </div>
