@@ -23,17 +23,43 @@ $sourcePath = $_SERVER['REQUEST_URI'];
 
 $allLangs = include __DIR__ . '/languages.php';
 
-echo '<div class="kaiju-widget" style="position: fixed; bottom: 25px; right: 25px; z-index: 9999;">';
-    echo '<select onchange="window.location.href=this.value"
-        style="background: rgba(15, 23, 42, 0.8); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 12px 18px; border-radius: 14px; backdrop-filter: blur(12px); font-family: sans-serif; font-size: 14px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); outline: none; cursor: pointer; transition: all 0.3s; border-left: 4px solid #38bdf8;">';
+// Generate CSRF token if not exists (for dashboard/other POST actions)
+if (session_status() === PHP_SESSION_NONE) {
+session_start();
+}
+if (empty($_SESSION['kt_csrf_token'])) {
+$_SESSION['kt_csrf_token'] = bin2hex(random_bytes(32));
+}
 
-        foreach ($langs as $lang) {
-        $url = $router->getLocalizedUrl($lang, $sourcePath);
-
-        $selected = ($lang === $currentLang) ? 'selected' : '';
-        $langName = isset($allLangs[$lang]) ? $allLangs[$lang] : strtoupper($lang);
-        echo '<option value="' . htmlspecialchars($url) . '" ' . $selected . '>' . $langName . '</option>';
+ob_start();
+?>
+<div class="kaiju-widget" style="position: fixed; bottom: 25px; right: 25px; z-index: 9999;">
+    <style>
+        .kaiju-widget select {
+            background: rgba(15, 23, 42, 0.8);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 12px 18px;
+            border-radius: 14px;
+            backdrop-filter: blur(12px);
+            font-family: sans-serif;
+            font-size: 14px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            outline: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-left: 4px solid #38bdf8;
         }
-
-        echo '</select>';
-    echo '</div>';
+    </style>
+    <select onchange="window.location.href=this.value">
+        <?php foreach ($langs as $lang):
+            $url = $router->getLocalizedUrl($lang, $sourcePath);
+            $selected = ($lang === $currentLang) ? 'selected' : '';
+            $langName = isset($allLangs[$lang]) ? $allLangs[$lang] : strtoupper($lang);
+            ?>
+            <option value="<?php echo htmlspecialchars($url); ?>" <?php echo $selected; ?>><?php echo $langName; ?></option>
+        <?php endforeach; ?>
+    </select>
+</div>
+<?php
+echo ob_get_clean();

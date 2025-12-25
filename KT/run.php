@@ -11,9 +11,14 @@ use KaijuTranslator\Processing\HtmlInjector;
 
 
 // 1. Initialize Components
+$configErrors = kaiju_validate_config();
+if (!empty($configErrors)) {
+    die("<h1>KaijuTranslator Configuration Error</h1><ul><li>" . implode("</li><li>", $configErrors) . "</li></ul>");
+}
+
 $config = kaiju_config();
 $router = new Router($config);
-$cache = new Cache(kaiju_config('cache_path'));
+$cache = new Cache(kaiju_config('cache_path', __DIR__ . '/cache'));
 $translator = new Translator(
     kaiju_config('translation_provider'),
     kaiju_config('api_key'),
@@ -26,23 +31,22 @@ $capture = new Capture();
 $lang = defined('KT_LANG') ? KT_LANG : ($config['base_lang'] ?? 'en');
 $sourcePath = $router->resolveSourceUrl($lang); // e.g. /about.php
 
-// 3. Cache Lookup
-$cacheKey = $cache->generateKey($sourcePath, $lang, ''); // Content hash empty for now, could be improved
-$cachedHtml = $cache->get($cacheKey);
-
-if ($cachedHtml) {
-    echo $cachedHtml;
-    exit;
-}
-
-// 4. Capture Original Content
+// 3. Capture Original Content
 $baseUrl = $router->getBaseUrl($sourcePath);
 $originalHtml = $capture->fetch($baseUrl);
 
 if (!$originalHtml) {
-    // Fallback: redirects to original? Or shows error?
-    // For now simple 404 or redirect
-    header("Location: " . $sourcePath);
+    http_response_code(502);
+    die("<h1>KaijuTranslator: Failed to capture source content</h1><p>Check if the base site is running at: <a href='$baseUrl'>$baseUrl</a></p>");
+}
+
+// 4. Cache Check (with Content Hashing for Invalidation)
+$contentHash = md5($originalHtml);
+$cacheKey = $cache->generateKey($sourcePath, $lang, $contentHash);
+$cachedHtml = $cache->get($cacheKey);
+
+if ($cachedHtml) {
+    echo $cachedHtml;
     exit;
 }
 

@@ -92,15 +92,36 @@ class Translator
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
         curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type: application/json"]);
+
         $response = curl_exec($ch);
         $err = curl_error($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
-        if ($err)
-            return $content;
+        if ($err) {
+            return "<!-- KT Gemini Network Error: $err -->" . $content;
+        }
+
+        if ($httpCode !== 200) {
+            $snippet = substr($response, 0, 200);
+            return "<!-- KT Gemini API Error: HTTP $httpCode - $snippet -->" . $content;
+        }
 
         $res = json_decode($response, true);
-        return $res['candidates'][0]['content']['parts'][0]['text'] ?? $content;
+        if (!$res) {
+            return "<!-- KT Gemini Error: Invalid JSON response -->" . $content;
+        }
+
+        if (isset($res['error'])) {
+            return "<!-- KT Gemini API Error Message: " . ($res['error']['message'] ?? 'Unknown error') . " -->" . $content;
+        }
+
+        $translated = $res['candidates'][0]['content']['parts'][0]['text'] ?? null;
+        if (!$translated) {
+            return "<!-- KT Gemini Error: Invalid response structure -->" . $content;
+        }
+
+        return $translated;
     }
 
     protected function makeRequest($url, $data, $headers)
@@ -110,14 +131,36 @@ class Translator
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+
         $response = curl_exec($ch);
         $err = curl_error($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
-        if ($err)
-            return "<!-- KT Error: $err -->" . $data['messages'][1]['content'];
+        $originalContent = $data['messages'][1]['content'] ?? '';
+
+        if ($err) {
+            return "<!-- KT Network Error: $err -->" . $originalContent;
+        }
+
+        if ($httpCode !== 200) {
+            $snippet = substr($response, 0, 200);
+            return "<!-- KT API Error: HTTP $httpCode - $snippet -->" . $originalContent;
+        }
 
         $res = json_decode($response, true);
-        return $res['choices'][0]['message']['content'] ?? $res['error']['message'] ?? "Error processing translation";
+        if (!$res) {
+            return "<!-- KT Error: Invalid JSON response from API -->" . $originalContent;
+        }
+
+        if (isset($res['choices'][0]['message']['content'])) {
+            return $res['choices'][0]['message']['content'];
+        }
+
+        if (isset($res['error']['message'])) {
+            return "<!-- KT API Error Message: {$res['error']['message']} -->" . $originalContent;
+        }
+
+        return "<!-- KT Error: Unexpected API response structure -->" . $originalContent;
     }
 }

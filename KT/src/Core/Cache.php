@@ -17,17 +17,33 @@ class Cache
     public function get($key)
     {
         $file = $this->getFilePath($key);
-        if (file_exists($file)) {
-            // Check TTL if needed, for now assumes valid until invalidated
-            return file_get_contents($file);
+        if (!file_exists($file)) {
+            return null;
         }
-        return null;
+
+        $fp = fopen($file, 'rb');
+        if (!$fp) {
+            return null;
+        }
+
+        flock($fp, LOCK_SH);
+        $content = stream_get_contents($fp);
+        flock($fp, LOCK_UN);
+        fclose($fp);
+
+        return $content !== false ? $content : null;
     }
 
     public function set($key, $content)
     {
         $file = $this->getFilePath($key);
-        return file_put_contents($file, $content);
+        // Use LOCK_EX to prevent concurrent writes
+        $result = @file_put_contents($file, $content, LOCK_EX);
+        if ($result === false) {
+            error_log("KaijuTranslator: Failed to write cache to $file");
+            return false;
+        }
+        return $result;
     }
 
     protected function getFilePath($key)
@@ -38,6 +54,8 @@ class Cache
 
     public function generateKey($url, $lang, $contentHash = '')
     {
-        return md5($url . '|' . $lang . '|' . $contentHash);
+        // Using a basic salt to make the key less predictable
+        $salt = 'kaiju_v1_';
+        return hash('sha256', $salt . $url . '|' . $lang . '|' . $contentHash);
     }
 }

@@ -5,6 +5,7 @@ namespace KaijuTranslator\Core;
 class Router
 {
     protected $basePath = '';
+    protected $config = [];
 
     public function __construct(array $config)
     {
@@ -15,13 +16,15 @@ class Router
     protected function detectBasePath()
     {
         // Calculate the project root relative to the domain root
-        // __DIR__ is .../KT/src/Core/
         $projectRoot = realpath(__DIR__ . '/../../../');
         $docRoot = realpath($_SERVER['DOCUMENT_ROOT'] ?? '');
 
-        if ($docRoot && strpos($projectRoot, $docRoot) === 0) {
+        if ($docRoot && $projectRoot && strpos($projectRoot, $docRoot) === 0) {
             $base = substr($projectRoot, strlen($docRoot));
             $this->basePath = rtrim(str_replace('\\', '/', $base), '/');
+        } else {
+            // Fallback for CLI or cases where project root is not under doc root
+            $this->basePath = '';
         }
     }
 
@@ -33,7 +36,7 @@ class Router
     public function resolveSourceUrl($lang)
     {
         $uri = $_SERVER['REQUEST_URI'] ?? '/';
-        $uriPath = parse_url($uri, PHP_URL_PATH);
+        $uriPath = parse_url($uri, PHP_URL_PATH) ?: '/';
 
         // Remove the basePath prefix to work with relative routes
         $pathWithoutBase = $uriPath;
@@ -55,7 +58,7 @@ class Router
 
         // Check for trailing /en
         $suffix = '/' . $lang;
-        if (substr($pathWithoutBase, -strlen($suffix)) === $suffix) {
+        if ($pathWithoutBase === $suffix || substr($pathWithoutBase, -strlen($suffix)) === $suffix) {
             $before = substr($pathWithoutBase, 0, -strlen($suffix));
             $rel = ($before ?: '') . '/';
             return $this->basePath . $rel;
@@ -84,9 +87,22 @@ class Router
 
     public function getBaseUrl(string $path = '')
     {
-        // Construct absolute URL for internal loopback
+        // In CLI, use base_url from config if available
+        if (php_sapi_name() === 'cli' && !empty($this->config['base_url'])) {
+            return rtrim($this->config['base_url'], '/') . $path;
+        }
+
+        // Check for common proxy headers
         $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        if (isset($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
+            $scheme = $_SERVER['HTTP_X_FORWARDED_PROTO'];
+        }
+
         $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+        if (isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
+            $host = $_SERVER['HTTP_X_FORWARDED_HOST'];
+        }
+
         return $scheme . '://' . $host . $path;
     }
 }

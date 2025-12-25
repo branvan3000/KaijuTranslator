@@ -17,14 +17,14 @@ class HtmlInjector
         $tags = '';
         if ($config['seo']['hreflang_enabled'] ?? true) {
             foreach ($translationsMap as $l => $url) {
-                $tags .= '<link rel="alternate" hreflang="' . $l . '" href="' . $url . '" />' . "\n";
+                $tags .= '<link rel="alternate" hreflang="' . htmlspecialchars($l) . '" href="' . htmlspecialchars($url) . '" />' . "\n";
             }
         }
 
         // Add canonical link if strategy is set to 'self'
         $strategy = $config['seo']['canonical_strategy'] ?? 'self';
-        if ($strategy === 'self') {
-            $tags .= '<link rel="canonical" href="' . $translationsMap[$lang] . '" />' . "\n";
+        if ($strategy === 'self' && isset($translationsMap[$lang])) {
+            $tags .= '<link rel="canonical" href="' . htmlspecialchars($translationsMap[$lang]) . '" />' . "\n";
         }
 
         return substr_replace($html, $tags, $headEnd, 0);

@@ -97,26 +97,44 @@ if (!isset($_SESSION['kt_auth']) || $_SESSION['kt_auth'] !== true) {
 
 
 // 2. State & Actions
+$validation = kaiju_validate_config();
 $alerts = [
     'success' => [],
-    'warning' => kaiju_validate_config()
+    'error' => $validation['errors'],
+    'warning' => $validation['warnings']
 ];
 
-if (isset($_POST['action'])) {
-    if ($_POST['action'] === 'build') {
-        define('KT_WEB_BUILD', true);
-        ob_start();
-        include __DIR__ . '/cli/build.php';
-        $alerts['success'][] = "Build Complete!<pre>" . htmlspecialchars(ob_get_clean()) . "</pre>";
-    } elseif ($_POST['action'] === 'clear_cache') {
-        $files = glob($cachePath . '/*');
-        if ($files) {
-            foreach ($files as $file) {
-                if (is_file($file))
-                    unlink($file);
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    // CSRF Check
+    $token = $_POST['csrf_token'] ?? '';
+    if (empty($token) || $token !== ($_SESSION['kt_csrf_token'] ?? '')) {
+        $alerts['error'][] = "CSRF Token Validation Failed. Please refresh and try again.";
+    } else {
+        if ($_POST['action'] === 'build') {
+            define('KT_WEB_BUILD', true);
+            ob_start();
+            try {
+                include __DIR__ . '/cli/build.php';
+                $alerts['success'][] = "Build Complete!<pre>" . htmlspecialchars(ob_get_clean()) . "</pre>";
+            } catch (\Exception $e) {
+                ob_end_clean();
+                $alerts['error'][] = "Build Failed: " . $e->getMessage();
             }
+        } elseif ($_POST['action'] === 'clear_cache') {
+            $files = glob($cachePath . '/*');
+            $count = 0;
+            if ($files) {
+                foreach ($files as $file) {
+                    if (is_file($file)) {
+                        if (unlink($file))
+                            $count++;
+                        else
+                            $alerts['warning'][] = "Failed to delete: " . basename($file);
+                    }
+                }
+            }
+            $alerts['success'][] = "Cache Cleared! ($count files removed)";
         }
-        $alerts['success'][] = "Cache Cleared!";
     }
 }
 
@@ -143,6 +161,9 @@ $cacheSizeStr = number_format($cacheSize / 1024, 2) . ' KB';
             --accent: #38bdf8;
             --text: #f8fafc;
             --text-dim: #94a3b8;
+            --error: #ef4444;
+            --warning: #fbbf24;
+            --success: #4ade80;
         }
 
         body {
@@ -249,14 +270,20 @@ $cacheSizeStr = number_format($cacheSize / 1024, 2) . ' KB';
 
         .alert-success {
             background: rgba(74, 222, 128, 0.1);
-            border-color: #4ade80;
-            color: #4ade80;
+            border-color: var(--success);
+            color: var(--success);
         }
 
         .alert-warning {
             background: rgba(251, 191, 36, 0.1);
-            border-color: #fbbf24;
-            color: #fbbf24;
+            border-color: var(--warning);
+            color: var(--warning);
+        }
+
+        .alert-error {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: var(--error);
+            color: var(--error);
         }
 
         .alert ul {
@@ -281,18 +308,17 @@ $cacheSizeStr = number_format($cacheSize / 1024, 2) . ' KB';
         <p class="subtitle">Management Console for KaijuTranslator | <a href="?logout=1"
                 style="color:var(--accent); text-decoration:none;">Logout</a></p>
 
+        <?php foreach ($alerts['error'] as $msg): ?>
+            <div class="alert alert-error"><strong>Error:</strong> <?php echo $msg; ?></div>
+        <?php endforeach; ?>
+
         <?php foreach ($alerts['success'] as $msg): ?>
             <div class="alert alert-success"><?php echo $msg; ?></div>
         <?php endforeach; ?>
 
         <?php if (!empty($alerts['warning'])): ?>
             <div class="alert alert-warning">
-                <!-- 4. Base URL Check (for sitemaps) -->
-                <?php if (empty($config['base_url'])): ?>
-                    <p><strong>Warning:</strong> Config 'base_url' is not set. (Optional, but recommended if you use the CLI
-                        Builder for Sitemaps).</p>
-                <?php endif; ?>
-                <strong>Config Warnings:</strong>
+                <strong>Warnings:</strong>
                 <ul>
                     <?php foreach ($alerts['warning'] as $err): ?>
                         <li><?php echo htmlspecialchars($err); ?></li>
@@ -318,6 +344,7 @@ $cacheSizeStr = number_format($cacheSize / 1024, 2) . ' KB';
 
         <div class="actions">
             <form method="POST">
+                <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['kt_csrf_token'] ?? ''; ?>">
                 <button type="submit" name="action" value="build">Build Stubs</button>
                 <button type="submit" name="action" value="clear_cache" class="secondary">Clear Cache</button>
                 <a href="../uninstall.php" style="margin-left:auto;"><button type="button" class="secondary"

@@ -45,7 +45,19 @@ if (!function_exists('kaiju_config')) {
             } elseif (file_exists($internalConfigFile)) {
                 $config = require $internalConfigFile;
             } else {
+                // If no config file is found, initialize with an empty array
+                // and then apply defaults if requested.
                 $config = [];
+            }
+            // Apply default cache_path if not explicitly set in config files
+            if (!isset($config['cache_path'])) {
+                $config['cache_path'] = __DIR__ . '/cache';
+            }
+
+            // Support Environment Variables for API Key
+            $envKey = getenv('KAIJU_API_KEY');
+            if ($envKey) {
+                $config['api_key'] = $envKey;
             }
         }
 
@@ -60,6 +72,8 @@ if (!function_exists('kaiju_config')) {
             if (isset($value[$k])) {
                 $value = $value[$k];
             } else {
+                if ($key === 'cache_path')
+                    return __DIR__ . '/cache';
                 return $default;
             }
         }
@@ -73,38 +87,51 @@ if (!function_exists('kaiju_config')) {
 function kaiju_validate_config()
 {
     $config = kaiju_config();
-    $errors = [];
+    $results = [
+        'errors' => [],
+        'warnings' => []
+    ];
 
     // 1. Language Check
     if (empty($config['base_lang'])) {
-        $errors[] = "Missing 'base_lang'.";
+        $results['errors'][] = "Missing 'base_lang'.";
     }
     if (empty($config['languages']) || !is_array($config['languages'])) {
-        $errors[] = "Missing or invalid 'languages' array.";
+        $results['errors'][] = "Missing or invalid 'languages' array.";
     } elseif (isset($config['base_lang']) && !in_array($config['base_lang'], $config['languages'])) {
-        $errors[] = "Base language '{$config['base_lang']}' not found in active languages list.";
+        $results['errors'][] = "Base language '{$config['base_lang']}' not found in active languages list.";
     }
 
     // 2. Provider Check
     $allowedProviders = ['openai', 'deepseek', 'gemini', 'gpt4'];
     $provider = strtolower($config['translation_provider'] ?? '');
     if (empty($provider)) {
-        $errors[] = "Translation provider not set.";
+        $results['errors'][] = "Translation provider not set.";
     } elseif (!in_array($provider, $allowedProviders)) {
-        $errors[] = "Invalid provider '{$provider}'. Use: openai, deepseek, gemini, or gpt4.";
+        $results['errors'][] = "Invalid provider '{$provider}'. Use: openai, deepseek, gemini, or gpt4.";
     }
 
     // 3. API Key Check
     if (empty($config['api_key'])) {
-        $errors[] = "API Key is missing. Translation will run in Mock Mode.";
+        $results['warnings'][] = "API Key is missing. Translation will run in Mock Mode.";
     }
 
     // 4. Base URL Check (for sitemaps)
-    // 4. Base URL Check (for sitemaps)
-    if (empty($config['base_url']) && ($config['seo']['hreflang_enabled'] ?? false)) {
-        // Warning only, as it's only strictly needed for CLI build sitemaps
-        $errors[] = "Config 'base_url' is missing. Required for Sitemap generation (SEO enabled).";
+    if (empty($config['base_url'])) {
+        if ($config['seo']['hreflang_enabled'] ?? false) {
+            $results['warnings'][] = "Config 'base_url' is missing. Required for Sitemap generation (SEO enabled).";
+        }
     }
 
-    return $errors;
+    // 5. Cache Path Check
+    $cachePath = $config['cache_path'] ?? null;
+    if ($cachePath) {
+        if (!is_dir($cachePath)) {
+            $results['warnings'][] = "Cache directory does not exist and might not be creatable.";
+        } elseif (!is_writable($cachePath)) {
+            $results['errors'][] = "Cache directory '{$cachePath}' is not writable.";
+        }
+    }
+
+    return $results;
 }

@@ -13,10 +13,24 @@ use KaijuTranslator\Builder\SitemapGen;
 
 echo "--- KaijuTranslator Builder ---\n";
 
+// 0. Validate Config
+$validation = kaiju_validate_config();
+if (!empty($validation['errors'])) {
+    echo "CRITICAL: Configuration errors found:\n";
+    foreach ($validation['errors'] as $e)
+        echo " - $e\n";
+    die("Please fix kaiju-config.php and try again.\n");
+}
+if (!empty($validation['warnings'])) {
+    echo "WARNING: Configuration warnings:\n";
+    foreach ($validation['warnings'] as $w)
+        echo " - $w\n";
+}
+
 // 1. Config
 $config = kaiju_config();
 $languages = $config['languages'];
-$baseLang = $config['base_lang'];
+$baseLang = $config['base_lang'] ?? 'es';
 $targetLangs = array_diff($languages, [$baseLang]);
 
 echo "Base Lang: $baseLang\n";
@@ -45,14 +59,21 @@ echo "Found " . count($files) . " files.\n";
 if (empty($targetLangs)) {
     echo "NOTICE: No target languages defined (only base lang exists). Stubs will not be created.\n";
 } else {
-    echo "Generating stubs...\n";
     $stubGen = new StubGenerator(realpath(__DIR__ . '/../../'));
+
+    echo "Cleaning obsoletes...\n";
+    $del = $stubGen->deleteObsoleteStubs($files, $targetLangs);
+    if ($del > 0)
+        echo "Deleted $del obsolete stubs.\n";
+
+    echo "Generating stubs...\n";
     $count = $stubGen->createStubs($files, $targetLangs);
     echo "Created $count stubs.\n";
 }
 
 // 4. Generate Sitemaps
-if ($config['seo']['hreflang_enabled']) {
+$seoConfig = $config['seo'] ?? [];
+if (!empty($seoConfig['hreflang_enabled'])) {
     if (empty($targetLangs)) {
         echo "NOTICE: No target languages defined. Skipping sitemap generation.\n";
     } else {
