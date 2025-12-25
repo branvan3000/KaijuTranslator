@@ -23,6 +23,10 @@ echo "Base Lang: $baseLang\n";
 echo "Target Langs: " . implode(', ', $targetLangs) . "\n";
 
 // 2. Scan
+if (empty($config['allowed_paths']) || !is_array($config['allowed_paths'])) {
+    die("CRITICAL: 'allowed_paths' must be a non-empty array in config.\n");
+}
+
 echo "Scanning files...\n";
 $scanner = new Scanner(
     $config['allowed_paths'],
@@ -30,24 +34,37 @@ $scanner = new Scanner(
     realpath(__DIR__ . '/../../') // Project root
 );
 $files = $scanner->scan();
+
+if (empty($files)) {
+    echo "WARNING: Found 0 files to translate. Check your 'allowed_paths' or 'excluded_paths'.\n";
+    exit;
+}
 echo "Found " . count($files) . " files.\n";
 
 // 3. Generate Stubs
-echo "Generating stubs...\n";
-$stubGen = new StubGenerator(realpath(__DIR__ . '/../../'));
-$count = $stubGen->createStubs($files, $targetLangs);
-echo "Created $count stubs.\n";
+if (empty($targetLangs)) {
+    echo "NOTICE: No target languages defined (only base lang exists). Stubs will not be created.\n";
+} else {
+    echo "Generating stubs...\n";
+    $stubGen = new StubGenerator(realpath(__DIR__ . '/../../'));
+    $count = $stubGen->createStubs($files, $targetLangs);
+    echo "Created $count stubs.\n";
+}
 
 // 4. Generate Sitemaps
 if ($config['seo']['hreflang_enabled']) {
     echo "Generating sitemaps...\n";
     $baseUrl = get_cli_base_url();
-    if (!$baseUrl) {
-        echo "CRITICAL: 'base_url' is not defined in config and could not be guessed.\n";
-        echo "Please define 'base_url' => 'https://yoursite.com' in kaiju-config.php for sitemap generation.\n";
+    if (empty($baseUrl)) {
+        echo "CRITICAL: 'base_url' is missing in config and could not be guessed.\n";
+        echo "Please define 'base_url' => 'https://yoursite.com' in kaiju-config.php.\n";
+        echo "Skipping sitemaps...\n";
+    } elseif (!is_valid_base_url($baseUrl)) {
+        echo "CRITICAL: 'base_url' is invalid: '$baseUrl'. It MUST include a protocol (http:// or https://).\n";
         echo "Skipping sitemaps...\n";
     } else {
-        $sitemapGen = new SitemapGen($config['sitemaps_path'], $baseUrl);
+        $sitemapsUrl = $config['sitemaps_url'] ?? null;
+        $sitemapGen = new SitemapGen($config['sitemaps_path'], $baseUrl, $sitemapsUrl);
 
         $generatedSitemaps = [];
 

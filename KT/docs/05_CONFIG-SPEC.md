@@ -24,6 +24,7 @@
 
 - `cache_path`: directorio para el cache de archivos HTML.
 - `sitemaps_path`: directorio donde se generarán los sitemaps XML.
+- `sitemaps_url`: (Opcional) URL pública que apunta a la carpeta de sitemaps. Requerido si la estructura no es `/sitemaps/kaiju/`.
 
 ---
 

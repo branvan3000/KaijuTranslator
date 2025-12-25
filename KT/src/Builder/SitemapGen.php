@@ -7,10 +7,14 @@ class SitemapGen
     protected $savePath;
     protected $baseUrl;
 
-    public function __construct($savePath, $baseUrl)
+    protected $sitemapsUrl;
+
+    public function __construct($savePath, $baseUrl, $sitemapsUrl = null)
     {
         $this->savePath = rtrim($savePath, '/');
         $this->baseUrl = rtrim($baseUrl, '/');
+        $this->sitemapsUrl = $sitemapsUrl ? rtrim($sitemapsUrl, '/') : $this->baseUrl . '/sitemaps/kaiju';
+
         if (!is_dir($this->savePath)) {
             mkdir($this->savePath, 0755, true);
         }
@@ -35,7 +39,19 @@ class SitemapGen
             if ($lang === kaiju_config('base_lang')) {
                 $url = $this->baseUrl . '/' . ltrim($file, '/');
             } else {
-                $url = $this->baseUrl . '/' . $lang . '/' . ltrim($file, '/');
+                // Correctly handle subdirectories: baseUrl might already have a path
+                // But generally, we want /lang/ after the domain-root relative path if any.
+                // However, since we now have Router::buildLangPath concept, we should be careful.
+                // For sitemaps, usually it's domain.com/subdir/en/file.php
+
+                $parsed = parse_url($this->baseUrl);
+                $path = $parsed['path'] ?? '';
+                $scheme = $parsed['scheme'] . '://';
+                $host = $parsed['host'];
+                $port = isset($parsed['port']) ? ':' . $parsed['port'] : '';
+
+                $baseUrlWithoutPath = $scheme . $host . $port;
+                $url = $baseUrlWithoutPath . rtrim($path, '/') . '/' . $lang . '/' . ltrim($file, '/');
             }
 
             $content .= "  <url>\n";
@@ -56,10 +72,7 @@ class SitemapGen
         $content .= '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
 
         foreach ($sitemaps as $sitemap) {
-            $url = $this->baseUrl . '/sitemaps/kaiju/' . $sitemap; // Assuming public URL structure matches file structure relative to root? 
-            // Actually config says 'sitemaps_path' is where we SAVE.
-            // We need a 'sitemaps_url' config or assume relative to domain root.
-            // Let's assume standard /sitemaps/kaiju/ URL structure.
+            $url = $this->sitemapsUrl . '/' . $sitemap;
 
             $content .= "  <sitemap>\n";
             $content .= "    <loc>$url</loc>\n";

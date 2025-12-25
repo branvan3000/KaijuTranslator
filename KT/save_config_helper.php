@@ -19,6 +19,7 @@ function save_kaiju_config($baseLang, $targetLangs, $provider, $model, $apiKey)
     $configContent .= "    'uninstall_password' => 'kaiju123', // Change this!\n";
     $configContent .= "    'cache_path' => __DIR__ . '/cache',\n";
     $configContent .= "    'sitemaps_path' => __DIR__ . '/../sitemaps/kaiju',\n";
+    $configContent .= "    // 'sitemaps_url' => 'https://yoursite.com/sitemaps/kaiju', // Optional: defaults to base_url + /sitemaps/kaiju\n";
     $configContent .= "    'allowed_paths' => [__DIR__ . '/../'],\n";
     $configContent .= "    'excluded_paths' => ['KT', 'vendor', '.git'],\n";
     $configContent .= "    'seo' => [\n";

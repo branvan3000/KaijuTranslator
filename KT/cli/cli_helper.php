@@ -16,3 +16,11 @@ function get_cli_base_url()
 
     return 'http://localhost/' . $folder;
 }
+
+function is_valid_base_url($url)
+{
+    if (empty($url))
+        return false;
+    // Basic schema check: must start with http:// or https://
+    return (bool) preg_match('/^https?:\/\//i', $url);
+}
