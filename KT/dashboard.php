@@ -8,6 +8,9 @@ $cachePath = $config['cache_path'] ?? __DIR__ . '/cache';
 
 // 1. Simple Authentication
 session_start();
+if (empty($_SESSION['kt_csrf_token'])) {
+    $_SESSION['kt_csrf_token'] = bin2hex(random_bytes(32));
+}
 $pass = $config['uninstall_password'] ?? 'kaiju123';
 
 if (isset($_GET['logout'])) {

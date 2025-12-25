@@ -11,9 +11,9 @@ use KaijuTranslator\Processing\HtmlInjector;
 
 
 // 1. Initialize Components
-$configErrors = kaiju_validate_config();
-if (!empty($configErrors)) {
-    die("<h1>KaijuTranslator Configuration Error</h1><ul><li>" . implode("</li><li>", $configErrors) . "</li></ul>");
+$validation = kaiju_validate_config();
+if (!empty($validation['errors'])) {
+    die("<h1>KaijuTranslator Configuration Error</h1><ul><li>" . implode("</li><li>", $validation['errors']) . "</li></ul>");
 }
 
 $config = kaiju_config();
