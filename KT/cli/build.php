@@ -53,34 +53,38 @@ if (empty($targetLangs)) {
 
 // 4. Generate Sitemaps
 if ($config['seo']['hreflang_enabled']) {
-    echo "Generating sitemaps...\n";
-    $baseUrl = get_cli_base_url();
-    if (empty($baseUrl)) {
-        echo "CRITICAL: 'base_url' is missing in config and could not be guessed.\n";
-        echo "Please define 'base_url' => 'https://yoursite.com' in kaiju-config.php.\n";
-        echo "Skipping sitemaps...\n";
-    } elseif (!is_valid_base_url($baseUrl)) {
-        echo "CRITICAL: 'base_url' is invalid: '$baseUrl'. It MUST include a protocol (http:// or https://).\n";
-        echo "Skipping sitemaps...\n";
+    if (empty($targetLangs)) {
+        echo "NOTICE: No target languages defined. Skipping sitemap generation.\n";
     } else {
-        $sitemapsUrl = $config['sitemaps_url'] ?? null;
-        $sitemapGen = new SitemapGen($config['sitemaps_path'], $baseUrl, $sitemapsUrl);
+        echo "Generating sitemaps...\n";
+        $baseUrl = get_cli_base_url();
+        if (empty($baseUrl)) {
+            echo "CRITICAL: 'base_url' is missing in config and could not be guessed.\n";
+            echo "Please define 'base_url' => 'https://yoursite.com' in kaiju-config.php.\n";
+            echo "Skipping sitemaps...\n";
+        } elseif (!is_valid_base_url($baseUrl)) {
+            echo "CRITICAL: 'base_url' is invalid: '$baseUrl'. It MUST include a protocol (http:// or https://).\n";
+            echo "Skipping sitemaps...\n";
+        } else {
+            $sitemapsUrl = $config['sitemaps_url'] ?? null;
+            $sitemapGen = new SitemapGen($config['sitemaps_path'], $baseUrl, $sitemapsUrl);
 
-        $generatedSitemaps = [];
+            $generatedSitemaps = [];
 
-        // Base lang sitemap
-        echo "  - $baseLang\n";
-        $generatedSitemaps[] = $sitemapGen->generate($baseLang, $files);
+            // Base lang sitemap
+            echo "  - $baseLang\n";
+            $generatedSitemaps[] = $sitemapGen->generate($baseLang, $files);
 
-        // Target langs sitemaps
-        foreach ($targetLangs as $lang) {
-            echo "  - $lang\n";
-            $generatedSitemaps[] = $sitemapGen->generate($lang, $files);
+            // Target langs sitemaps
+            foreach ($targetLangs as $lang) {
+                echo "  - $lang\n";
+                $generatedSitemaps[] = $sitemapGen->generate($lang, $files);
+            }
+
+            // Index
+            $sitemapGen->generateIndex($generatedSitemaps);
+            echo "Sitemap Index generated at $baseUrl\n";
         }
-
-        // Index
-        $sitemapGen->generateIndex($generatedSitemaps);
-        echo "Sitemap Index generated at $baseUrl\n";
     }
 }
 
